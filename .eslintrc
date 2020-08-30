@@ -1,0 +1,40 @@
+{
+	"parser": "@typescript-eslint/parser",
+	"extends": [
+		"plugin:@typescript-eslint/recommended",
+		"plugin:prettier/recommended",
+		"plugin:unicorn/recommended"
+	],
+	"rules": {
+		"@typescript-eslint/no-unused-vars": 2,
+		"@typescript-eslint/explicit-function-return-type": 2,
+		"@typescript-eslint/member-delimiter-style": [
+			0,
+			{
+				"multiline": {
+					"delimiter": "none",
+					"requireLast": false
+				},
+				"singleline": {
+					"delimiter": "comma",
+					"requireLast": false
+				}
+			}
+		],
+		"@typescript-eslint/no-explicit-any": 2,
+		"sort-imports": [
+			"error",
+			{
+				"ignoreCase": false,
+				"ignoreDeclarationSort": true,
+				"ignoreMemberSort": false,
+				"memberSyntaxSortOrder": [
+					"all",
+					"single",
+					"multiple",
+					"none"
+				]
+			}
+		]
+	}
+}

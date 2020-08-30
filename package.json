@@ -1,0 +1,65 @@
+{
+    "name": "@lxghtless/schema-registry",
+    "version": "0.0.0",
+    "main": "dist/server.js",
+    "repository": "git@github.com:lxghtless/schema-registry",
+    "homepage": "https://github.com/lxghtless/schema-registry/",
+    "author": "lxghtless",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/lxghtless/schema-registry/issues"
+    },
+    "engines": {
+        "node": ">=10.16.0"
+    },
+    "scripts": {
+        "predev": "yarn build",
+        "dev": "yarn start",
+        "start": "node dist/server.js",
+        "lint": "eslint --fix \"src/**/*.ts\"",
+        "lint-no-fix": "eslint \"src/**/*.ts\"",
+        "type-check": "tsc --noEmit",
+        "build": "rimraf dist && tsc",
+        "migrate": "knex migrate:latest",
+        "reset-db": "rimraf registry.sqlite",
+        "postreset-db": "yarn migrate",
+        "pretty-knex": "prettier --write knexfile.js \"migrations/*.js\""
+    },
+    "dependencies": {
+        "@ovotech/avro-mock-generator": "^2.0.3",
+        "avsc": "^5.4.22",
+        "fastify": "^3.3.0",
+        "fastify-autoload": "^3.0.8",
+        "fastify-healthcheck": "^3.0.0",
+        "fastify-plugin": "^2.3.3",
+        "fastify-rate-limit": "^4.0.2",
+        "fastify-sensible": "^3.0.1",
+        "knex": "^0.21.5",
+        "ms": "^2.1.2",
+        "pino": "^6.5.1",
+        "pino-pretty": "^4.2.0",
+        "ramda": "^0.27.1",
+        "sqlite3": "^5.0.0"
+    },
+    "devDependencies": {
+        "@types/ms": "^0.7.31",
+        "@types/node": "^14.6.0",
+        "@types/pino": "^6.3.0",
+        "@types/ramda": "^0.27.14",
+        "@typescript-eslint/eslint-plugin": "^3.10.1",
+        "@typescript-eslint/parser": "^3.10.1",
+        "eslint": "^7.7.0",
+        "eslint-config-prettier": "^6.11.0",
+        "eslint-plugin-prettier": "^3.1.4",
+        "eslint-plugin-unicorn": "^21.0.0",
+        "husky": "^4.2.5",
+        "prettier": "^2.1.0",
+        "rimraf": "^3.0.2",
+        "typescript": "^4.0.2"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "yarn type-check && yarn lint"
+        }
+    }
+}

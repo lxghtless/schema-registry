@@ -1,0 +1,4 @@
+export SCHEMA_REGISTRY_PORT=8081
+export SCHEMA_REGISTRY_HOST=::
+export PINO_LOG_LEVEL=info
+export PINO_PRETTY_PRINT=false
