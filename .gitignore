@@ -3,3 +3,5 @@ node_modules
 .envrc
 dist
 *.sqlite
+.vscode
+json-schema-faker/index.js

@@ -27,7 +27,7 @@ function plugin(
         const store = new KnexRegistryStore(database)
         fastify.decorate('registryStore', store)
     } else {
-        throw new Error(`storeType ${options.storeType} not implemented`)
+        throw new Error(`storeType "${options.storeType}" not implemented`)
     }
 
     next()

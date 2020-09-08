@@ -38,7 +38,8 @@ export default (): FastifyInstance => {
     )
 
     const server: FastifyInstance = fastify({
-        caseSensitive: false,
+        // NOTE: since all routes are lowercase, this seems fine.
+        caseSensitive: true,
         maxParamLength: 200,
         trustProxy: true,
         logger: log,

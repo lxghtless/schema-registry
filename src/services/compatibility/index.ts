@@ -1,13 +1,14 @@
-import {Type} from 'avsc'
 import {FastifyInstance, HookHandlerDoneFunction} from 'fastify'
-import {isCompatible} from '../../util'
-import {compatibilityMode} from '../../config'
+import {compatibilityModeService, isCompatible} from '../../compatibility'
 
 export default function compatibility(
     fastify: FastifyInstance,
     _: {[x: string]: string},
     next: HookHandlerDoneFunction
 ): void {
+    // NOTE: this will throw an error if the COMPATIBILITY_MODE env var is set to an unexpected mode
+    compatibilityModeService.assertDefaultCompatibilityMode()
+
     fastify.post<{Body: {schema: string}; Params: {subject: string}}>(
         '/subjects/:subject/versions/latest',
         {
@@ -51,14 +52,15 @@ export default function compatibility(
                     return reply.notFound()
                 }
 
-                const latestType = Type.forSchema(JSON.parse(result.schema))
-                const nextType = Type.forSchema(JSON.parse(schema))
-
                 const is_compatible = isCompatible(
-                    latestType,
-                    nextType,
-                    compatibilityMode
+                    result.schema,
+                    schema,
+                    result.schemaType,
+                    // TODO: get configured compatibility mode if it exists
+                    compatibilityModeService.defaultCompatibilityModeAsNumber()
                 )
+
+                console.log(is_compatible)
 
                 return reply.status(200).send({is_compatible})
             } catch (error) {

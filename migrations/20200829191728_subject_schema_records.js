@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable unicorn/filename-case */
 const SUBJECT_SCHEMA_RECORDS_TABLE_NAME = 'subject_schema_records'
 
 exports.up = function (knex) {

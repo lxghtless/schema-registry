@@ -73,7 +73,9 @@ $ yarn dev
 
 ## TODO
 
-- Add `/config` routes.
-- Make `knex` client & options configurable.
-- Expand and improve compatibility modes.
-- Tests.
+-   [x] Add `/config` routes.
+-   [x] Add JSON Schema support.
+-   [ ] Make `knex` client & options configurable.
+-   [ ] Expand and improve compatibility modes.
+-   [ ] Tests.
+-   [ ] Add JWT validation support.

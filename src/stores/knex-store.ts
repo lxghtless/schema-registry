@@ -5,6 +5,7 @@ import {
     Registration,
     RegistrationResult,
     RegistryStore,
+    SchemaType,
     SubjectRecord
 } from '../interfaces'
 
@@ -13,10 +14,11 @@ const SUBJECT_RECORDS_TABLE_NAME = 'subject_records'
 const SUBJECT_SCHEMA_RECORDS_TABLE_NAME = 'subject_schema_records'
 
 const readBySubjectFields = [
-    'sub_r.name as subject',
-    'sub_sc_r.version as version',
-    'sub_sc_r.schema_id as id',
-    'sc_r.schema as schema'
+    'subject_record.name as subject',
+    'subject_schema_record.version as version',
+    'subject_schema_record.schema_id as id',
+    'schema_record.schema as schema',
+    'schema_record.schema_type as schemaType'
 ]
 
 const countResult = (count_result: NumericCountResult): number => {
@@ -45,7 +47,7 @@ export class KnexRegistryStore implements RegistryStore {
     }
 
     async saveSchema(registration: Registration): Promise<RegistrationResult> {
-        const {fingerprint, schema, subject} = registration
+        const {fingerprint, schema, schemaType, subject} = registration
 
         let schemaRecord = await this.db(SCHEMA_RECORDS_TABLE_NAME)
             .first('id')
@@ -56,6 +58,7 @@ export class KnexRegistryStore implements RegistryStore {
                 .insert({
                     fingerprint,
                     schema,
+                    schema_type: schemaType,
                     created_at: Date.now()
                 })
                 .then(() =>
@@ -118,50 +121,76 @@ export class KnexRegistryStore implements RegistryStore {
     ): Promise<SubjectRecord | undefined> {
         if (isNil(version) || version === 'latest') {
             const subjectSchemas = await this.db(
-                `${SUBJECT_RECORDS_TABLE_NAME} as sub_r`
+                `${SUBJECT_RECORDS_TABLE_NAME} as subject_record`
             )
                 .select<SubjectRecord[]>(...readBySubjectFields)
                 .innerJoin(
-                    `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as sub_sc_r`,
+                    `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as subject_schema_record`,
                     function () {
-                        this.on('sub_sc_r.subject_id', '=', 'sub_r.id')
+                        this.on(
+                            'subject_schema_record.subject_id',
+                            '=',
+                            'subject_record.id'
+                        )
                     }
                 )
-                .innerJoin(`${SCHEMA_RECORDS_TABLE_NAME} as sc_r`, function () {
-                    this.on('sc_r.id', '=', 'sub_sc_r.schema_id')
-                })
-                .where('sub_r.name', subject)
+                .innerJoin(
+                    `${SCHEMA_RECORDS_TABLE_NAME} as schema_record`,
+                    function () {
+                        this.on(
+                            'schema_record.id',
+                            '=',
+                            'subject_schema_record.schema_id'
+                        )
+                    }
+                )
+                .where('subject_record.name', subject)
 
             return head(sort(byVersion, subjectSchemas))
         }
 
-        return this.db(`${SUBJECT_RECORDS_TABLE_NAME} as sub_r`)
+        return this.db(`${SUBJECT_RECORDS_TABLE_NAME} as subject_record`)
             .first<SubjectRecord>(...readBySubjectFields)
             .innerJoin(
-                `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as sub_sc_r`,
+                `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as subject_schema_record`,
                 function () {
-                    this.on('sub_sc_r.subject_id', '=', 'sub_r.id')
+                    this.on(
+                        'subject_schema_record.subject_id',
+                        '=',
+                        'subject_record.id'
+                    )
                 }
             )
-            .innerJoin(`${SCHEMA_RECORDS_TABLE_NAME} as sc_r`, function () {
-                this.on('sc_r.id', '=', 'sub_sc_r.schema_id')
-            })
-            .where('sub_r.name', subject)
-            .andWhere('sub_sc_r.version', Number.parseInt(version))
+            .innerJoin(
+                `${SCHEMA_RECORDS_TABLE_NAME} as schema_record`,
+                function () {
+                    this.on(
+                        'schema_record.id',
+                        '=',
+                        'subject_schema_record.schema_id'
+                    )
+                }
+            )
+            .where('subject_record.name', subject)
+            .andWhere('subject_schema_record.version', Number.parseInt(version))
     }
 
     async readSubjectVersions(subject: string): Promise<number[] | undefined> {
         const subjectSchemas = await this.db(
-            `${SUBJECT_RECORDS_TABLE_NAME} as sub_r`
+            `${SUBJECT_RECORDS_TABLE_NAME} as subject_record`
         )
-            .select<SubjectRecord[]>('sub_sc_r.version as version')
+            .select<SubjectRecord[]>('subject_schema_record.version as version')
             .innerJoin(
-                `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as sub_sc_r`,
+                `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as subject_schema_record`,
                 function () {
-                    this.on('sub_sc_r.subject_id', '=', 'sub_r.id')
+                    this.on(
+                        'subject_schema_record.subject_id',
+                        '=',
+                        'subject_record.id'
+                    )
                 }
             )
-            .where('sub_r.name', subject)
+            .where('subject_record.name', subject)
 
         if (subjectSchemas.length === 0) {
             return
@@ -237,18 +266,54 @@ export class KnexRegistryStore implements RegistryStore {
         subject: string,
         fingerprint: string
     ): Promise<SubjectRecord | undefined> {
-        return this.db(`${SUBJECT_RECORDS_TABLE_NAME} as sub_r`)
+        return this.db(`${SUBJECT_RECORDS_TABLE_NAME} as subject_record`)
             .first<SubjectRecord>(...readBySubjectFields)
             .innerJoin(
-                `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as sub_sc_r`,
+                `${SUBJECT_SCHEMA_RECORDS_TABLE_NAME} as subject_schema_record`,
                 function () {
-                    this.on('sub_sc_r.subject_id', '=', 'sub_r.id')
+                    this.on(
+                        'subject_schema_record.subject_id',
+                        '=',
+                        'subject_record.id'
+                    )
                 }
             )
-            .innerJoin(`${SCHEMA_RECORDS_TABLE_NAME} as sc_r`, function () {
-                this.on('sc_r.id', '=', 'sub_sc_r.schema_id')
-            })
-            .where('sub_r.name', subject)
-            .andWhere('sc_r.fingerprint', fingerprint)
+            .innerJoin(
+                `${SCHEMA_RECORDS_TABLE_NAME} as schema_record`,
+                function () {
+                    this.on(
+                        'schema_record.id',
+                        '=',
+                        'subject_schema_record.schema_id'
+                    )
+                }
+            )
+            .where('subject_record.name', subject)
+            .andWhere('schema_record.fingerprint', fingerprint)
+    }
+
+    async readRegisteredSchemaTypes(): Promise<string[]> {
+        const schemaTypes = await this.db(SCHEMA_RECORDS_TABLE_NAME).distinct<
+            {
+                schema_type: number
+            }[]
+        >('schema_type')
+
+        const schemaTypeNumbers = new Set(
+            schemaTypes.map(({schema_type}) => schema_type)
+        )
+
+        // NOTE: Consider using a generator yield instead of array collection
+        const result: string[] = []
+
+        if (schemaTypeNumbers.has(SchemaType.AVRO)) {
+            result.push('AVRO')
+        }
+
+        if (schemaTypeNumbers.has(SchemaType.JSON)) {
+            result.push('JSON')
+        }
+
+        return result
     }
 }

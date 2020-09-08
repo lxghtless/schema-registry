@@ -6,7 +6,7 @@ export default function schemas(
     next: HookHandlerDoneFunction
 ): void {
     fastify.get<{Params: {id: number}}>(
-        '/:id',
+        '/ids/:id',
         {
             schema: {
                 params: {
@@ -46,5 +46,30 @@ export default function schemas(
         }
     )
 
+    fastify.get(
+        '/types',
+        {
+            schema: {
+                response: {
+                    200: {
+                        type: 'array',
+                        items: {
+                            type: 'string'
+                        }
+                    }
+                }
+            }
+        },
+        async function (request, reply): Promise<void> {
+            try {
+                const schemaTypes = await this.registryStore.readRegisteredSchemaTypes()
+
+                return reply.status(200).send(schemaTypes)
+            } catch (error) {
+                request.log.error(error)
+                return reply.internalServerError(error.message)
+            }
+        }
+    )
     next()
 }

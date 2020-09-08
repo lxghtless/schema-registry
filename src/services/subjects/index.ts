@@ -1,5 +1,5 @@
-import {Schema, Type} from 'avsc'
 import {FastifyInstance, HookHandlerDoneFunction} from 'fastify'
+import {toRegistration} from '../../util'
 
 export default function subjects(
     fastify: FastifyInstance,
@@ -150,24 +150,10 @@ export default function subjects(
         async function (request, reply): Promise<void> {
             const {schema} = request.body
             const {subject} = request.params
-
-            let parsed: Type
-
             try {
-                parsed = Type.forSchema(JSON.parse(schema) as Schema)
-            } catch (error) {
-                request.log.error(error)
-                return reply.badRequest(error.message)
-            }
+                const registration = await toRegistration({schema, subject})
 
-            const fingerprint = parsed.fingerprint().toString('base64')
-
-            try {
-                const result = await this.registryStore.saveSchema({
-                    subject,
-                    schema,
-                    fingerprint
-                })
+                const result = await this.registryStore.saveSchema(registration)
 
                 return reply.status(200).send(result)
             } catch (error) {
@@ -213,18 +199,8 @@ export default function subjects(
             const {schema} = request.body
             const {subject} = request.params
 
-            let parsed: Type
-
             try {
-                parsed = Type.forSchema(JSON.parse(schema) as Schema)
-            } catch (error) {
-                request.log.error(error)
-                return reply.badRequest(error.message)
-            }
-
-            const fingerprint = parsed.fingerprint().toString('base64')
-
-            try {
+                const {fingerprint} = await toRegistration({schema, subject})
                 const result = await this.registryStore.readSchemaBySubjectFingerprint(
                     subject,
                     fingerprint

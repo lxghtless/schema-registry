@@ -1,5 +1,4 @@
 import ms from 'ms'
-import {CompatibilityMode} from './interfaces'
 
 const {
     COMPATIBILITY_MODE,
@@ -17,7 +16,9 @@ export const loggingConfig = {
 export const serverConfig = {
     name: 'lxghtless-schema-registry',
     host: SCHEMA_REGISTRY_HOST ?? '::',
-    port: SCHEMA_REGISTRY_PORT ? Number(SCHEMA_REGISTRY_PORT) : 8081
+    port: SCHEMA_REGISTRY_PORT
+        ? Number.parseInt(SCHEMA_REGISTRY_PORT, 10)
+        : 8081
 }
 
 export const rateLimitConfig = {
@@ -29,6 +30,4 @@ export const healthcheckConfig = {
     exposeUptime: true
 }
 
-export const compatibilityMode: CompatibilityMode = COMPATIBILITY_MODE
-    ? (COMPATIBILITY_MODE.toUpperCase() as CompatibilityMode)
-    : 'BACKWARD'
+export const defaultCompatibilityMode: string = COMPATIBILITY_MODE ?? 'FORWARD'
