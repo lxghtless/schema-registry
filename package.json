@@ -38,7 +38,7 @@
         "json-schema-ref-parser": "^5.0.0",
         "jsonpath": "^1.0.0",
         "knex": "^0.21.5",
-        "mode-mask": "^2.1.2",
+        "mode-mask": "^2.2.0",
         "ms": "^2.1.2",
         "object-hash": "^2.0.3",
         "pino": "^6.5.1",

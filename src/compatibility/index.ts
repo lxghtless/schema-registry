@@ -1,4 +1,4 @@
-import {buildMaskFactory} from 'mode-mask'
+import {MaskProvider} from 'mode-mask'
 import {Schema, Type, schema} from 'avsc'
 import Ajv from 'ajv'
 import genData from '@ovotech/avro-mock-generator'
@@ -14,25 +14,27 @@ export const CompatibilityMode = {
     NONE: 8
 }
 
-export const compatibilityMask = buildMaskFactory({
-    values: Object.keys(CompatibilityMode)
-})()
+export const maskProvider = MaskProvider.fromModesOrValues(CompatibilityMode)
 
 export const compatibilityModeService: CompatibilityModeService = {
     assertCompatibilityMode(mode: string): void {
         assert(
-            compatibilityMask.fromValues([mode]),
-            `invalid compatibility mode: ${mode}.`
+            maskProvider.mask.fromValues([mode]),
+            `invalid compatibility mode: ${mode}. must be one of: ${maskProvider.values.join(
+                ', '
+            )}`
         )
     },
     assertDefaultCompatibilityMode(): void {
         assert(
-            compatibilityMask.fromValues([defaultCompatibilityMode]),
-            `invalid compatibility mode: ${defaultCompatibilityMode}`
+            maskProvider.mask.fromValues([defaultCompatibilityMode]),
+            `invalid compatibility mode: ${defaultCompatibilityMode}. must be one of: ${maskProvider.values.join(
+                ', '
+            )}`
         )
     },
     defaultCompatibilityMode(): string {
-        const maskDatum = compatibilityMask.fromValues([
+        const maskDatum = maskProvider.mask.fromValues([
             defaultCompatibilityMode
         ])
 
@@ -45,7 +47,7 @@ export const compatibilityModeService: CompatibilityModeService = {
         return maskDatum.values[0]
     },
     defaultCompatibilityModeAsNumber(): number {
-        const maskDatum = compatibilityMask.fromValues([
+        const maskDatum = maskProvider.mask.fromValues([
             defaultCompatibilityMode
         ])
 
